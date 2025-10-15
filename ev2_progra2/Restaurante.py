@@ -202,14 +202,18 @@ class AplicacionConPestanas(ctk.CTk):
         self.pdf_viewer_boleta = None
         
 
+    
     def mostrar_boleta(self):
+        """Muestra el archivo PDF de la boleta en el visor de la pestaña 'Boleta'."""
         try:
-            # Usa la ruta generada por generar_boleta
-            pdf_path = getattr(self, "boleta_pdf_path", None)
-            if not pdf_path or not os.path.exists(pdf_path):
-                CTkMessagebox(title="Error", message="Primero debes generar la boleta.", icon="warning")
+            pdf_path = "boleta.pdf"
+            abs_pdf = os.path.abspath(pdf_path)
+
+            if not os.path.exists(abs_pdf):
+                CTkMessagebox(title="Error", message="No se encontró el archivo de boleta. Genera una primero.", icon="warning")
                 return
-            # Limpia el visor anterior si existe
+
+            # Si ya hay un visor abierto, eliminarlo antes de reemplazarlo
             if self.pdf_viewer_boleta is not None:
                 try:
                     self.pdf_viewer_boleta.pack_forget()
@@ -218,11 +222,14 @@ class AplicacionConPestanas(ctk.CTk):
                     pass
                 self.pdf_viewer_boleta = None
 
-            abs_pdf = os.path.abspath(pdf_path)
+            # Crear y mostrar el visor con la boleta PDF
             self.pdf_viewer_boleta = CTkPDFViewer(self.pdf_frame_boleta, file=abs_pdf)
             self.pdf_viewer_boleta.pack(expand=True, fill="both")
+
         except Exception as e:
             CTkMessagebox(title="Error", message=f"No se pudo mostrar la boleta.\n{e}", icon="warning")
+
+
 
     def configurar_pestana1(self):
         # Dividir la Pestaña 1 en dos frames
@@ -324,14 +331,26 @@ class AplicacionConPestanas(ctk.CTk):
         else:
             CTkMessagebox(title="Error", message="No se pudo eliminar el menú.", icon="warning")
 
-    def generar_boleta(self):
-        try:
-            boleta = BoletaFacade(self.pedido)
-            pdf_path = boleta.generar_boleta()  # Debe retornar "boleta.pdf"
-            CTkMessagebox(title="Boleta generada", message="La boleta se generó correctamente.", icon="info")
-            self.boleta_pdf_path = pdf_path  # Aquí se guarda la ruta
-        except Exception as e:
-            CTkMessagebox(title="Error", message=f"No se pudo generar la boleta.\n{e}", icon="warning")
+    def generar_boleta(self):  
+        """Genera la boleta en PDF utilizando BoletaFacade y actualiza el visor."""  
+        try:  
+            if not self.pedido.menus:  
+                CTkMessagebox(title="Error", message="No hay menús en el pedido para generar la boleta.", icon="warning")  
+                return  
+
+            # Crear la boleta  
+            boleta = BoletaFacade(self.pedido)  
+            mensaje = boleta.generar_boleta()  
+            CTkMessagebox(title="Boleta Generada", message=mensaje, icon="info")  
+
+            # Mostrar automáticamente la boleta en el tab correspondiente  
+            self.mostrar_boleta()  
+
+        except Exception as e:  
+            CTkMessagebox(title="Error", message=f"No se pudo generar la boleta.\n{e}", icon="warning")  
+
+
+
 
     def configurar_pestana2(self):
         frame_superior = ctk.CTkFrame(self.tab2)
