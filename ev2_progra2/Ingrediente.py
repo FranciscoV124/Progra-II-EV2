@@ -9,7 +9,10 @@ class Ingrediente:
     cantidad: float          
 
     def __post_init__(self):
-        self.cantidad = float(self.cantidad)
+        try:
+            self.cantidad = float(self.cantidad)
+        except (ValueError, TypeError):
+            self.cantidad = 0.0
 
     def __str__(self):
         if self.unidad:

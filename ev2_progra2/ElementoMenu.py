@@ -10,17 +10,17 @@ class CrearMenu(IMenu):
     ingredientes: List[Ingrediente]
     precio: float = 0.0
     icono_path: Optional[str] = None
-    cantidad: int = field(default=0, compare=False)
+    cantidad: int = 1
 
-    def esta_disponible(self, stock: Stock) -> bool:
-        for req in self.ingredientes:
-            ok = False
-            for ing in stock.lista_ingredientes:
-                if ing.nombre == req.nombre and (req.unidad is None or ing.unidad == req.unidad):
-                    if int(ing.cantidad) >= int(req.cantidad):
-                        ok = True
+    def esta_disponible(self, stock: 'Stock') -> bool:
+        for ingrediente_necesario in self.ingredientes:
+            encontrado = False
+            for ingrediente_stock in stock.lista_ingredientes:
+                if ingrediente_necesario.nombre == ingrediente_stock.nombre and ingrediente_necesario.unidad == ingrediente_stock.unidad:
+                    if float(ingrediente_stock.cantidad) >= float(ingrediente_necesario.cantidad):
+                        encontrado = True
                         break
-            if not ok:
+            if not encontrado:
                 return False
         return True
 
